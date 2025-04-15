@@ -1,4 +1,5 @@
 import 'package:chat_app/pages/home/home.dart';
+import 'package:chat_app/sevices/auth.dart';
 import 'package:flutter/material.dart';
 
 class Onboard extends StatefulWidget {
@@ -37,7 +38,8 @@ class _OnboardState extends State<Onboard> {
             ),
                                                  ///Google Button ///
             GestureDetector(onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => Home(),));
+              AuthMethod().sininWithGoogle(context);
+
             },
               child: Container(
                 margin: EdgeInsets.only(right: 20, left: 20),

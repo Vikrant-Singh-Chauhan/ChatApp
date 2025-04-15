@@ -1,13 +1,74 @@
+import 'package:chat_app/sevices/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:random_string/random_string.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../sevices/share_prefer.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  String ? name,profileUrl,username;
+  ChatPage({this.name,this.profileUrl,required this.username, required String chatRoomId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
+  String? myUserName , myName , myEmail , myPicture , chatRoom,messageId;
+  TextEditingController messageController = TextEditingController();
+
+  getTheSharedprefer() async{
+    myUserName = await SharePreferHelper().getUserDisplayName();
+    myName = await SharePreferHelper().getUserDisplayName();
+    myEmail = await SharePreferHelper().getUserEmail();
+    myPicture = await SharePreferHelper().getUserImage();
+    chatRoom = await getChatRoomIdByUsername(widget.username!,myUserName!);
+    setState(() {
+    });
+  }
+
+  @override
+  void initState() {
+    getTheSharedprefer();
+    super.initState();
+  }
+
+  getChatRoomIdByUsername(String a , String b){
+    if(a.substring(0,1).codeUnitAt(0) > b.substring(0,1).codeUnitAt(0)){
+      return "$a\$b";
+    }else{
+      return "$b\$a";
+    }
+  }
+  addMessage(bool sentClicked){
+    if (messageController.text! == ""){
+      String message = messageController.text;
+      messageController.text="";
+      DateTime now = DateTime.now();
+      String formatedDate = DateFormat("h:mma").format(now);
+      Map<String, dynamic>massageInfoMap =  {
+        "message":message,
+        "sentBy":myUserName,
+        "ts": FieldValue.serverTimestamp(),
+        "imagaurl":myPicture
+      };
+      messageId = randomAlphaNumeric(10);
+      DatabaseMethod().addMassage(chatRoom!, messageId!, massageInfoMap).then((value) async {
+        Map<String,dynamic>lastMassageInfoMap = {
+          "lastMassage":message,
+          "lastMessageSentTs":formatedDate,
+          "time":FieldValue.serverTimestamp(),
+          "lastMassageSentBy":myUserName
+        };
+        await DatabaseMethod().updateLastMessageSend(chatRoom!, lastMassageInfoMap);
+        if(sentClicked){
+          message = "";
+        }
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +88,7 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Row(
                   children: [
-                    ///  other massage
+                    ///  other massage //////
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -99,6 +160,7 @@ class _ChatPageState extends State<ChatPage> {
                             borderRadius: BorderRadius.circular(10),
                             color: Colors.blue[50],                          ),
                             child: TextField(
+                              controller: messageController,
                               decoration: InputDecoration(
                                 hintText: "Write a massage...",
                                 border: InputBorder.none,
