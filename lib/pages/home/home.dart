@@ -13,15 +13,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String? myUserName , myName , myEmail , myPicture;
+  String? myUserName, myName, myEmail, myPicture;
   TextEditingController searchController = TextEditingController();
-  getTheSharedprefer() async{
+
+  getTheSharedprefer() async {
     myUserName = await SharePreferHelper().getUserDisplayName();
     myName = await SharePreferHelper().getUserDisplayName();
     myEmail = await SharePreferHelper().getUserEmail();
     myPicture = await SharePreferHelper().getUserImage();
-    setState(() {
-    });
+    setState(() {});
   }
 
   getChatRoomIdByUsername(String a, String b) {
@@ -46,7 +46,8 @@ class _HomeState extends State<Home> {
       return;
     }
 
-    String capitalizedValue = value.substring(0, 1).toUpperCase() + value.substring(1);
+    String capitalizedValue = value.substring(0, 1).toUpperCase() +
+        value.substring(1);
 
     if (queryResultSet.isEmpty && value.length == 1) {
       DatabaseMethod().Search(value).then((QuerySnapshot docs) {
@@ -67,6 +68,11 @@ class _HomeState extends State<Home> {
         }
       });
     }
+  }
+  @override
+  void initState() {
+    getTheSharedprefer();
+    super.initState();
   }
 
   @override
@@ -144,7 +150,10 @@ class _HomeState extends State<Home> {
             Expanded(
               child: Container(
                 padding: EdgeInsets.only(left: 10, right: 10),
-                width: MediaQuery.of(context).size.width,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(15),
@@ -187,7 +196,10 @@ class _HomeState extends State<Home> {
                       elevation: 4,
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        width: MediaQuery.of(context).size.width,
+                        width: MediaQuery
+                            .of(context)
+                            .size
+                            .width,
                         decoration: BoxDecoration(
                             color: Colors.red[100],
                             borderRadius: BorderRadius.circular(10)),
@@ -240,21 +252,25 @@ class _HomeState extends State<Home> {
     return GestureDetector(
       onTap: () async {
         search = false;
-        var chatRoomId = getChatRoomIdByUsername(myUserName!, data["username"]!);
-        Map<String,dynamic>chatInfoMap={
-          "users":[myUserName,data["username"]]
+        var chatRoomId = getChatRoomIdByUsername(
+            myUserName!, data["username"]!);
+        Map<String, dynamic>chatInfoMap = {
+          "users": [myUserName, data["username"]]
         };
         await DatabaseMethod().creatChatRoom(chatRoomId, chatInfoMap);
-
+        Navigator.push(context, MaterialPageRoute(builder: (context) =>
+            ChatPage(name: data["Name"],
+                profileUrl: data["Image"],
+                username: data["username"],
+                 ),));
       },
       child: Card(
-        color: Colors.red[50],
+        color: Colors.red[200],
         elevation: 2,
         margin: EdgeInsets.symmetric(vertical: 5),
         child: ListTile(
-          leading: CircleAvatar(
-            backgroundImage: AssetImage("images/photo.jpeg"),
-          ),
+          leading: ClipRRect(borderRadius: BorderRadius.circular(100),
+              child: Image.network(data["Image"] ,fit: BoxFit.cover,)),
           title: Text(
             data["username"],
             style: TextStyle(
@@ -263,6 +279,18 @@ class _HomeState extends State<Home> {
                 fontWeight: FontWeight.bold),
           ),
           subtitle: Text("Tap to start chat"),
+          trailing: Column(
+            children: [
+              Text(
+                "01:30",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold),
+              ),
+              Icon(Icons.done_all),
+            ],
+          ),
         ),
       ),
     );
